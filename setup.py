@@ -3,7 +3,7 @@ from setuptools import find_packages, setup
 # Package metadata
 NAME = 'interaktiv.mcpapi'
 DESCRIPTION = 'MCP API integration for Plone.'
-URL = 'https://github.com/interaktiv/interaktiv.mcpapi'
+URL = 'https://github.com/interaktivgmbh/interaktiv.mcpapi'
 EMAIL = 'support@interaktiv.de'
 AUTHOR = 'Interaktiv GmbH'
 REQUIRES_PYTHON = '~=3.11'
@@ -35,7 +35,7 @@ setup(
     author=AUTHOR,
     author_email=EMAIL,
     url=URL,
-    license='proprietary',
+    license='GPL version 2',
     packages=find_packages('src'),
     package_dir={'': 'src'},
     namespace_packages=['interaktiv', ],
