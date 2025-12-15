@@ -1,0 +1,12 @@
+  <configure
+      xmlns="http://namespaces.zope.org/zope"
+      xmlns:plone="http://namespaces.plone.org/plone">
+
+    <adapter
+        factory="interaktiv.mcpapi.tools.search.SearchTool"
+        provides="interaktiv.mcpapi.interfaces.IMCPTool"
+        for="* zope.publisher.interfaces.browser.IDefaultBrowserLayer"
+        name="search"
+    />
+
+  </configure>

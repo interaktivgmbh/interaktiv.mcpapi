@@ -1,0 +1,12 @@
+  <configure
+      xmlns="http://namespaces.zope.org/zope"
+      xmlns:browser="http://namespaces.zope.org/browser">
+
+      <browser:page
+          name="@mcp"
+          for="*"
+          class="interaktiv.mcpapi.mcp.endpoint.MCPEndpoint"
+          permission="zope2.View"
+      />
+
+  </configure>
