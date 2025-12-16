@@ -9,4 +9,18 @@
         name="search"
     />
 
+    <adapter
+        factory="interaktiv.mcpapi.tools.translate_content.TranslateContentTool"
+        provides="interaktiv.mcpapi.interfaces.IMCPTool"
+        for="* zope.publisher.interfaces.browser.IDefaultBrowserLayer"
+        name="translate_content"
+    />
+
+    <adapter
+        factory="interaktiv.mcpapi.tools.get_content.GetContentTool"
+        provides="interaktiv.mcpapi.interfaces.IMCPTool"
+        for="* zope.publisher.interfaces.browser.IDefaultBrowserLayer"
+        name="get_content"
+    />
+
   </configure>
