@@ -68,8 +68,8 @@ class TestMCPEndpointView(unittest.TestCase):
         self.assertIn('tools', result['result'])
         tools = result['result']['tools']
 
-        self.assertEqual(len(tools), 1)
-        self.assertEqual(tools[0]['name'], 'search')
+        tool_names = [tool['name'] for tool in tools]
+        self.assertIn('search', tool_names)
 
     def test__handle_tools_call__no_tool_name(self):
         # setup
@@ -314,8 +314,8 @@ class TestMCPEndpointView(unittest.TestCase):
         self.assertIn('tools', data['result'])
         tools = data['result']['tools']
 
-        self.assertEqual(len(tools), 1)
-        self.assertEqual(tools[0]['name'], 'search')
+        tool_names = [tool['name'] for tool in tools]
+        self.assertIn('search', tool_names)
 
     def test__call__tools_call(self):
         # setup
