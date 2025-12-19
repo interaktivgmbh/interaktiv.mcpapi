@@ -36,11 +36,6 @@ class SlateHTMLParser(HTMLParser):
     def handle_starttag(self, tag, attrs):
         attrs_dict = dict(attrs)
 
-
-        print('####')
-        print('####')
-        print(attrs_dict)
-
         if tag in self.BLOCK_TAGS or tag in self.INLINE_TAGS:
             slate_type = self.TAG_MAP.get(tag, 'p')
             node = {'type': slate_type, 'children': []}

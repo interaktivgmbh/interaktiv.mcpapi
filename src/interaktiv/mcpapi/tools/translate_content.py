@@ -118,6 +118,9 @@ class TranslateContentTool(MCPToolBase):
         setattr(content, 'blocks', content_blocks)
 
     def _set_translated_blocks_recursive(self, blocks, blocks_html):
+        if not isinstance(blocks, dict):
+            return
+
         for block_id, block_data in blocks.items():
             block_type = block_data.get('@type', '')
 
@@ -129,11 +132,10 @@ class TranslateContentTool(MCPToolBase):
             data = block_data.get('data', {})
             if isinstance(data, dict) and 'blocks' in data:
                 nested_blocks = data.get('blocks', {})
-                for nested_block in nested_blocks.values():
-                    if isinstance(nested_block, dict) and 'blocks' in nested_block:
-                        self._set_translated_blocks_recursive(
-                            nested_block['blocks'], blocks_html
-                        )
+
+                self._set_translated_blocks_recursive(
+                    nested_blocks, blocks_html
+                )
 
             if 'blocks' in block_data and block_type != 'slate':
                 self._set_translated_blocks_recursive(
@@ -141,15 +143,16 @@ class TranslateContentTool(MCPToolBase):
                 )
 
     def _update_slate_block(self, block, html):
-        slate_data = deepcopy(block)
+        block_data = deepcopy(block)
 
         value, plaintext = self._html_to_slate(html)
-        slate_data['value'] = value
-        slate_data['plaintext'] = plaintext
+        block_data['value'] = value
+        block_data['plaintext'] = plaintext
 
-        return slate_data
+        return block_data
 
-    def _html_to_slate(self, html):
+    @staticmethod
+    def _html_to_slate(html):
         parser = SlateHTMLParser()
         parser.feed(html)
         return parser.get_result()
