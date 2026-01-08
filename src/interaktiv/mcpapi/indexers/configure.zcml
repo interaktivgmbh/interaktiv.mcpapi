@@ -1,0 +1,9 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    i18n_domain="interaktiv.mcpapi">
+
+    <adapter factory="interaktiv.mcpapi.indexers.course.SearchableTextCourse"
+            name="SearchableText"
+    />
+
+</configure>
