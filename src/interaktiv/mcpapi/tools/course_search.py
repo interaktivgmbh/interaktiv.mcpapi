@@ -117,6 +117,11 @@ class CourseSearchTool(MCPToolBase):
         if hasattr(obj, 'get_language'):
             result['course_language_label'] = obj.get_language()
         if hasattr(obj, 'get_period'):
-            result['period_label'] = obj.get_period()
+            try:
+                result['period_label'] = obj.get_period()
+            except (AttributeError, TypeError):
+                # Handle cases where period is None or invalid
+                period = getattr(obj, 'period', None)
+                result['period_label'] = f"{period} Semester" if period else ''
 
         return result
