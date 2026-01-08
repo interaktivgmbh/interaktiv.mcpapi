@@ -80,7 +80,7 @@ class CourseSearchTool(MCPToolBase):
         ]
 
     def _format_result(self, brain):
-        """Format a course object into a result dict with all available data."""
+        """Format a course object into a summary result dict."""
         obj = brain.getObject()
 
         result = {
@@ -106,33 +106,6 @@ class CourseSearchTool(MCPToolBase):
             value = getattr(obj, field, None)
             if value is not None:
                 result[field] = value
-
-        # Information links (datagrid field)
-        info_links = getattr(obj, 'information_links', None)
-        if info_links:
-            result['information_links'] = info_links
-
-        # Requirements (datagrid field)
-        requirements = getattr(obj, 'requirements', None)
-        if requirements:
-            result['requirements'] = requirements
-
-        # Rich text field - extract plain text
-        text = getattr(obj, 'text', None)
-        if text and hasattr(text, 'raw'):
-            # Limit text length to avoid huge responses
-            raw_text = text.raw or ''
-            if len(raw_text) > 1000:
-                raw_text = raw_text[:1000] + '...'
-            result['text'] = raw_text
-
-        # Selection info
-        selection_info = getattr(obj, 'selection_info', None)
-        if selection_info and hasattr(selection_info, 'raw'):
-            raw_text = selection_info.raw or ''
-            if len(raw_text) > 500:
-                raw_text = raw_text[:500] + '...'
-            result['selection_info'] = raw_text
 
         # Get human-readable labels using Course methods
         if hasattr(obj, 'get_graduation'):
