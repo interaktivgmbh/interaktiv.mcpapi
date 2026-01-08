@@ -1,6 +1,6 @@
 import json
 from interaktiv.mcpapi import logger
-from interaktiv.mcpapi.interfaces import IMCPTool
+from interaktiv.mcpapi.interfaces import IMCPBlockTool, IMCPTool
 
 from AccessControl import getSecurityManager
 from Products.Five import BrowserView
@@ -70,7 +70,10 @@ class MCPEndpoint(BrowserView):
         tools = []
         sm = getSecurityManager()
 
-        available_tools = getAdapters((self.context, self.request), IMCPTool)
+        # Get regular tools and block tools
+        available_tools = list(getAdapters((self.context, self.request), IMCPTool))
+        available_tools += list(getAdapters((self.context, self.request), IMCPBlockTool))
+
         for name, tool in available_tools:
             if not sm.checkPermission(tool.permission, self.context):
                 continue
@@ -101,12 +104,19 @@ class MCPEndpoint(BrowserView):
                 message='Missing required parameter: name'
             )
 
-        # Look up the tool by name
+        # Look up the tool by name (try regular tools first, then block tools)
         tool = queryMultiAdapter(
             (self.context, self.request),
             IMCPTool,
             name=tool_name
         )
+
+        if tool is None:
+            tool = queryMultiAdapter(
+                (self.context, self.request),
+                IMCPBlockTool,
+                name=tool_name
+            )
 
         if tool is None:
             return self._json_rpc_error(

@@ -23,4 +23,12 @@
         name="get_content"
     />
 
+    <!-- Block tools (IMCPBlockTool) -->
+    <adapter
+        factory="interaktiv.mcpapi.tools.add_slate_block.AddSlateBlockTool"
+        provides="interaktiv.mcpapi.interfaces.IMCPBlockTool"
+        for="* zope.publisher.interfaces.browser.IDefaultBrowserLayer"
+        name="add_slate_block"
+    />
+
   </configure>
