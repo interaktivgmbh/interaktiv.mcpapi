@@ -11,11 +11,19 @@
     />
 
     <!-- OAuth 2.0 Discovery Endpoint (RFC 8414) -->
-    <!-- Note: .well-known path doesn't work in Plone, so we use @mcp-oauth-discovery -->
+    <!-- Alternative path for direct access -->
     <browser:page
         name="@mcp-oauth-discovery"
         for="*"
         class="interaktiv.mcpapi.mcp.oauth.OAuthDiscoveryEndpoint"
+        permission="zope2.View"
+    />
+
+    <!-- .well-known traverser for standard OAuth discovery URL -->
+    <browser:page
+        name=".well-known"
+        for="*"
+        class="interaktiv.mcpapi.mcp.wellknown.WellKnownTraverser"
         permission="zope2.View"
     />
 
