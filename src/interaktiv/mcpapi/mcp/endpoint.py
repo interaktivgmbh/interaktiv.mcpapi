@@ -13,10 +13,37 @@ from interaktiv.mcpapi.mcp import MAX_RESPONSE_SIZE_BYTES
 class MCPEndpoint(BrowserView):
     # claude mcp add --transport http plone-local http://localhost:8000/site/@mcp
 
+    # CORS configuration
+    CORS_ALLOWED_ORIGINS = ['https://claude.ai']
+    CORS_ALLOWED_METHODS = 'POST, OPTIONS'
+    CORS_ALLOWED_HEADERS = 'Content-Type, Authorization'
+
+    def _set_cors_headers(self):
+        """Set CORS headers for cross-origin requests from claude.ai."""
+        origin = self.request.getHeader('Origin', '')
+        response = self.request.response
+
+        if origin in self.CORS_ALLOWED_ORIGINS:
+            response.setHeader('Access-Control-Allow-Origin', origin)
+        elif '*' in self.CORS_ALLOWED_ORIGINS:
+            response.setHeader('Access-Control-Allow-Origin', '*')
+
+        response.setHeader('Access-Control-Allow-Methods', self.CORS_ALLOWED_METHODS)
+        response.setHeader('Access-Control-Allow-Headers', self.CORS_ALLOWED_HEADERS)
+
     def __call__(self):
         # Disable CSRF protection for MCP JSON-RPC endpoint
         # TODO this needed to be done for anonymous POST request access
         alsoProvides(self.request, IDisableCSRFProtection)
+
+        # Set CORS headers for all responses
+        self._set_cors_headers()
+
+        # Handle CORS preflight request
+        if self.request.method == 'OPTIONS':
+            self.request.response.setStatus(204)
+            return ''
+
         self.request.response.setHeader('Content-Type', 'application/json')
 
         body = self.request.get('BODY', '{}')
