@@ -268,6 +268,7 @@ class OAuthAuthorizeEndpoint(BrowserView):
             params['state'] = state
 
         redirect_url = f"{redirect_uri}?{urlencode(params)}"
+        logger.info(f"Redirecting to: {redirect_url[:100]}...")
 
         self.request.response.redirect(redirect_url)
         return ''
@@ -307,7 +308,8 @@ class OAuthTokenEndpoint(BrowserView):
         alsoProvides(self.request, IDisableCSRFProtection)
         _set_cors_headers(self.request)
 
-        logger.info(f"OAuth Token request: method={self.request.method}, origin={self.request.getHeader('Origin', 'unknown')}")
+        # Log all headers for debugging
+        logger.info(f"OAuth Token request: method={self.request.method}, origin={self.request.getHeader('Origin', 'unknown')}, content-type={self.request.getHeader('Content-Type', 'none')}")
 
         if self.request.method == 'OPTIONS':
             self.request.response.setStatus(204)
