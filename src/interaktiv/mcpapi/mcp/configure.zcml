@@ -59,4 +59,12 @@
         permission="zope2.View"
     />
 
+    <!-- OAuth 2.0 Dynamic Client Registration Endpoint (RFC 7591) -->
+    <browser:page
+        name="register"
+        for="*"
+        class="interaktiv.mcpapi.mcp.oauth.OAuthRegisterEndpoint"
+        permission="zope2.View"
+    />
+
 </configure>

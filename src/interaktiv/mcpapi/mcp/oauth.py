@@ -176,6 +176,7 @@ class OAuthDiscoveryEndpoint(BrowserView):
             'issuer': server_url,
             'authorization_endpoint': f'{server_url}/authorize',
             'token_endpoint': f'{server_url}/token',
+            'registration_endpoint': f'{server_url}/register',
             'token_endpoint_auth_methods_supported': [
                 'client_secret_post',
                 'client_secret_basic',
@@ -293,6 +294,70 @@ class OAuthAuthorizeEndpoint(BrowserView):
         redirect_url = f"{redirect_uri}?{urlencode(params)}"
         self.request.response.redirect(redirect_url)
         return ''
+
+
+class OAuthRegisterEndpoint(BrowserView):
+    """
+    OAuth 2.0 Dynamic Client Registration Endpoint (RFC 7591).
+
+    For claude.ai, we return the pre-configured client credentials.
+    """
+
+    def __call__(self):
+        alsoProvides(self.request, IDisableCSRFProtection)
+        _set_cors_headers(self.request)
+
+        logger.info(f"OAuth Register request: method={self.request.method}, origin={self.request.getHeader('Origin', 'unknown')}")
+
+        if self.request.method == 'OPTIONS':
+            self.request.response.setStatus(204)
+            return ''
+
+        self.request.response.setHeader('Content-Type', 'application/json')
+        self.request.response.setHeader('Cache-Control', 'no-store')
+
+        if self.request.method != 'POST':
+            self.request.response.setStatus(405)
+            return json.dumps({
+                'error': 'method_not_allowed',
+                'error_description': 'Only POST method is allowed'
+            })
+
+        if not MCP_OAUTH_CLIENT_ID or not MCP_OAUTH_CLIENT_SECRET:
+            logger.error("OAuth not configured for registration")
+            self.request.response.setStatus(500)
+            return json.dumps({
+                'error': 'server_error',
+                'error_description': 'OAuth not configured on server'
+            })
+
+        # Parse registration request
+        try:
+            body = self.request.get('BODY', '{}')
+            data = json.loads(body)
+        except json.JSONDecodeError:
+            data = {}
+
+        logger.info(f"OAuth Register: client_name={data.get('client_name', 'unknown')}, redirect_uris={data.get('redirect_uris', [])}")
+
+        # Return pre-configured client credentials
+        # In a production system, you might generate unique credentials per registration
+        server_url = _get_server_url(self.request)
+
+        response_data = {
+            'client_id': MCP_OAUTH_CLIENT_ID,
+            'client_secret': MCP_OAUTH_CLIENT_SECRET,
+            'client_id_issued_at': int(time.time()),
+            'client_secret_expires_at': 0,  # Never expires
+            'redirect_uris': data.get('redirect_uris', ['https://claude.ai/api/mcp/auth_callback']),
+            'token_endpoint_auth_method': 'client_secret_post',
+            'grant_types': ['authorization_code'],
+            'response_types': ['code'],
+            'client_name': data.get('client_name', 'MCP Client'),
+        }
+
+        self.request.response.setStatus(201)
+        return json.dumps(response_data)
 
 
 class OAuthTokenEndpoint(BrowserView):
