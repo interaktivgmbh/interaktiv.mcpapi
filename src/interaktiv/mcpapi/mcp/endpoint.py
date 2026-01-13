@@ -18,8 +18,8 @@ from interaktiv.mcpapi.mcp import MAX_RESPONSE_SIZE_BYTES
 _sessions = {}
 SESSION_TIMEOUT = 3600  # 1 hour
 
-# MCP Protocol version
-MCP_PROTOCOL_VERSION = '2025-03-26'
+# MCP Protocol version - must be 2025-06-18 for claude.ai compatibility
+MCP_PROTOCOL_VERSION = '2025-06-18'
 
 # Check if OAuth is required (if credentials are configured)
 OAUTH_REQUIRED = bool(MCP_OAUTH_CLIENT_ID)
@@ -48,9 +48,9 @@ class MCPEndpoint(BrowserView):
 
     # CORS configuration
     CORS_ALLOWED_ORIGINS = ['https://claude.ai']
-    CORS_ALLOWED_METHODS = 'GET, POST, DELETE, OPTIONS'
+    CORS_ALLOWED_METHODS = 'GET, HEAD, POST, DELETE, OPTIONS'
     CORS_ALLOWED_HEADERS = 'Content-Type, Authorization, Accept, Mcp-Session-Id, Last-Event-ID'
-    CORS_EXPOSE_HEADERS = 'Mcp-Session-Id'
+    CORS_EXPOSE_HEADERS = 'Mcp-Session-Id, MCP-Protocol-Version'
 
     def _set_cors_headers(self):
         """Set CORS headers for cross-origin requests."""
@@ -153,6 +153,12 @@ class MCPEndpoint(BrowserView):
         # Handle CORS preflight
         if self.request.method == 'OPTIONS':
             self.request.response.setStatus(204)
+            return ''
+
+        # Handle HEAD request - required by claude.ai for protocol version discovery
+        if self.request.method == 'HEAD':
+            self.request.response.setHeader('MCP-Protocol-Version', MCP_PROTOCOL_VERSION)
+            self.request.response.setStatus(200)
             return ''
 
         # Handle session termination
