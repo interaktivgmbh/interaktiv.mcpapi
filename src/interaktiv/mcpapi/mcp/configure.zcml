@@ -18,6 +18,14 @@
         permission="zope2.View"
     />
 
+    <!-- OAuth 2.0 Authorization Endpoint -->
+    <browser:page
+        name="authorize"
+        for="*"
+        class="interaktiv.mcpapi.mcp.oauth.OAuthAuthorizeEndpoint"
+        permission="zope2.View"
+    />
+
     <!-- OAuth 2.0 Token Endpoint -->
     <browser:page
         name="@mcp-oauth-token"
