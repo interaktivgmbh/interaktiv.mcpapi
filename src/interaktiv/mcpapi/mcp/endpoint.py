@@ -1,10 +1,8 @@
 import json
-import os
 import secrets
 import time
 from interaktiv.mcpapi import logger
 from interaktiv.mcpapi.interfaces import IMCPTool
-from interaktiv.mcpapi.mcp.oauth import validate_access_token, MCP_OAUTH_CLIENT_ID, MCP_SERVER_URL
 
 from AccessControl import getSecurityManager
 from Products.Five import BrowserView
@@ -18,11 +16,8 @@ from interaktiv.mcpapi.mcp import MAX_RESPONSE_SIZE_BYTES
 _sessions = {}
 SESSION_TIMEOUT = 3600  # 1 hour
 
-# MCP Protocol version - must be 2025-06-18 for claude.ai compatibility
-MCP_PROTOCOL_VERSION = '2025-06-18'
-
-# Check if OAuth is required (if credentials are configured)
-OAUTH_REQUIRED = bool(MCP_OAUTH_CLIENT_ID)
+# MCP Protocol version
+MCP_PROTOCOL_VERSION = '2025-03-26'
 
 
 def _cleanup_expired_sessions():
@@ -45,66 +40,6 @@ class MCPEndpoint(BrowserView):
     Supports both JSON and SSE response formats.
     Reference: https://modelcontextprotocol.io/specification/2025-03-26/basic/transports
     """
-
-    # CORS configuration
-    CORS_ALLOWED_ORIGINS = ['https://claude.ai']
-    CORS_ALLOWED_METHODS = 'GET, HEAD, POST, DELETE, OPTIONS'
-    CORS_ALLOWED_HEADERS = 'Content-Type, Authorization, Accept, Mcp-Session-Id, Last-Event-ID'
-    CORS_EXPOSE_HEADERS = 'Mcp-Session-Id, MCP-Protocol-Version'
-
-    def _set_cors_headers(self):
-        """Set CORS headers for cross-origin requests."""
-        origin = self.request.getHeader('Origin', '')
-        response = self.request.response
-
-        if origin in self.CORS_ALLOWED_ORIGINS:
-            response.setHeader('Access-Control-Allow-Origin', origin)
-        elif '*' in self.CORS_ALLOWED_ORIGINS:
-            response.setHeader('Access-Control-Allow-Origin', '*')
-
-        response.setHeader('Access-Control-Allow-Methods', self.CORS_ALLOWED_METHODS)
-        response.setHeader('Access-Control-Allow-Headers', self.CORS_ALLOWED_HEADERS)
-        response.setHeader('Access-Control-Expose-Headers', self.CORS_EXPOSE_HEADERS)
-
-    def _validate_origin(self):
-        """Validate Origin header for security (DNS rebinding prevention)."""
-        origin = self.request.getHeader('Origin', '')
-        if not origin:
-            # No origin header (same-origin request or non-browser client)
-            return True
-        return origin in self.CORS_ALLOWED_ORIGINS or '*' in self.CORS_ALLOWED_ORIGINS
-
-    def _validate_bearer_token(self):
-        """
-        Validate Bearer token from Authorization header.
-
-        Returns:
-            - None if OAuth is not required (no credentials configured)
-            - Token payload dict if valid
-            - False if invalid or missing when required
-        """
-        if not OAUTH_REQUIRED:
-            # OAuth not configured, allow anonymous access
-            return None
-
-        auth_header = self.request.getHeader('Authorization', '')
-        if not auth_header:
-            logger.debug("No Authorization header present")
-            return False
-
-        if not auth_header.startswith('Bearer '):
-            logger.debug("Authorization header is not Bearer type")
-            return False
-
-        token = auth_header[7:]  # Remove 'Bearer ' prefix
-        payload = validate_access_token(token)
-
-        if payload is None:
-            logger.debug("Token validation failed")
-            return False
-
-        logger.debug(f"Token validated for client: {payload.get('client_id', 'unknown')}")
-        return payload
 
     def _get_session_id(self):
         """Get session ID from request header."""
@@ -143,23 +78,6 @@ class MCPEndpoint(BrowserView):
 
     def __call__(self):
         alsoProvides(self.request, IDisableCSRFProtection)
-        self._set_cors_headers()
-
-        # Validate Origin header for security
-        if not self._validate_origin():
-            self.request.response.setStatus(403)
-            return json.dumps({'error': 'Invalid origin'})
-
-        # Handle CORS preflight
-        if self.request.method == 'OPTIONS':
-            self.request.response.setStatus(204)
-            return ''
-
-        # Handle HEAD request - required by claude.ai for protocol version discovery
-        if self.request.method == 'HEAD':
-            self.request.response.setHeader('MCP-Protocol-Version', MCP_PROTOCOL_VERSION)
-            self.request.response.setStatus(200)
-            return ''
 
         # Handle session termination
         if self.request.method == 'DELETE':
@@ -204,37 +122,9 @@ class MCPEndpoint(BrowserView):
         self.request.response.setHeader('Content-Type', 'application/json')
         return json.dumps({'error': 'GET streams not supported'})
 
-    def _get_server_url(self):
-        """Get the server URL for OAuth metadata."""
-        if MCP_SERVER_URL:
-            return MCP_SERVER_URL.rstrip('/')
-        return self.request.URL1.rstrip('/')
-
     def _handle_post(self):
         """Handle POST request with JSON-RPC message."""
-        logger.info(f"MCP POST request from {self.request.getHeader('Origin', 'unknown')}")
-
-        # Validate Bearer token if OAuth is configured
-        token_result = self._validate_bearer_token()
-        if token_result is False:
-            # Token required but invalid/missing - return 401 with Protected Resource Metadata URL
-            server_url = self._get_server_url()
-            # Point to Protected Resource Metadata (RFC 9728), not OAuth discovery directly
-            resource_metadata_url = f'{server_url}/.well-known/oauth-protected-resource'
-
-            logger.info(f"MCP returning 401, resource_metadata_url={resource_metadata_url}")
-
-            self.request.response.setStatus(401)
-            self.request.response.setHeader('Content-Type', 'application/json')
-            self.request.response.setHeader(
-                'WWW-Authenticate',
-                f'Bearer resource_metadata="{resource_metadata_url}"'
-            )
-            return json.dumps(self._json_rpc_error(
-                None, -32600, 'Authentication required'
-            ))
-
-        logger.info(f"MCP request authenticated, token_result={type(token_result)}")
+        logger.info(f"MCP POST request received")
 
         accept_header = self.request.getHeader('Accept', 'application/json')
         session_id = self._get_session_id()
