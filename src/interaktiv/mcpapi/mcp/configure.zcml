@@ -1,12 +1,29 @@
-  <configure
-      xmlns="http://namespaces.zope.org/zope"
-      xmlns:browser="http://namespaces.zope.org/browser">
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser">
 
-      <browser:page
-          name="@mcp"
-          for="*"
-          class="interaktiv.mcpapi.mcp.endpoint.MCPEndpoint"
-          permission="zope2.View"
-      />
+    <!-- MCP Endpoint (Streamable HTTP transport) -->
+    <browser:page
+        name="@mcp"
+        for="*"
+        class="interaktiv.mcpapi.mcp.endpoint.MCPEndpoint"
+        permission="zope2.View"
+    />
 
-  </configure>
+    <!-- OAuth 2.0 Discovery Endpoint (RFC 8414) -->
+    <browser:page
+        name=".well-known/oauth-authorization-server"
+        for="*"
+        class="interaktiv.mcpapi.mcp.oauth.OAuthDiscoveryEndpoint"
+        permission="zope2.View"
+    />
+
+    <!-- OAuth 2.0 Token Endpoint -->
+    <browser:page
+        name="@mcp-oauth-token"
+        for="*"
+        class="interaktiv.mcpapi.mcp.oauth.OAuthTokenEndpoint"
+        permission="zope2.View"
+    />
+
+</configure>

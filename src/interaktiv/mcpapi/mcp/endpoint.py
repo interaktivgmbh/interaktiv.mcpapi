@@ -4,6 +4,7 @@ import secrets
 import time
 from interaktiv.mcpapi import logger
 from interaktiv.mcpapi.interfaces import IMCPTool
+from interaktiv.mcpapi.mcp.oauth import validate_access_token, MCP_OAUTH_CLIENT_ID
 
 from AccessControl import getSecurityManager
 from Products.Five import BrowserView
@@ -19,6 +20,9 @@ SESSION_TIMEOUT = 3600  # 1 hour
 
 # MCP Protocol version
 MCP_PROTOCOL_VERSION = '2025-03-26'
+
+# Check if OAuth is required (if credentials are configured)
+OAUTH_REQUIRED = bool(MCP_OAUTH_CLIENT_ID)
 
 
 def _cleanup_expired_sessions():
@@ -69,6 +73,38 @@ class MCPEndpoint(BrowserView):
             # No origin header (same-origin request or non-browser client)
             return True
         return origin in self.CORS_ALLOWED_ORIGINS or '*' in self.CORS_ALLOWED_ORIGINS
+
+    def _validate_bearer_token(self):
+        """
+        Validate Bearer token from Authorization header.
+
+        Returns:
+            - None if OAuth is not required (no credentials configured)
+            - Token payload dict if valid
+            - False if invalid or missing when required
+        """
+        if not OAUTH_REQUIRED:
+            # OAuth not configured, allow anonymous access
+            return None
+
+        auth_header = self.request.getHeader('Authorization', '')
+        if not auth_header:
+            logger.debug("No Authorization header present")
+            return False
+
+        if not auth_header.startswith('Bearer '):
+            logger.debug("Authorization header is not Bearer type")
+            return False
+
+        token = auth_header[7:]  # Remove 'Bearer ' prefix
+        payload = validate_access_token(token)
+
+        if payload is None:
+            logger.debug("Token validation failed")
+            return False
+
+        logger.debug(f"Token validated for client: {payload.get('client_id', 'unknown')}")
+        return payload
 
     def _get_session_id(self):
         """Get session ID from request header."""
@@ -164,6 +200,17 @@ class MCPEndpoint(BrowserView):
 
     def _handle_post(self):
         """Handle POST request with JSON-RPC message."""
+        # Validate Bearer token if OAuth is configured
+        token_result = self._validate_bearer_token()
+        if token_result is False:
+            # Token required but invalid/missing
+            self.request.response.setStatus(401)
+            self.request.response.setHeader('Content-Type', 'application/json')
+            self.request.response.setHeader('WWW-Authenticate', 'Bearer')
+            return json.dumps(self._json_rpc_error(
+                None, -32600, 'Authentication required'
+            ))
+
         accept_header = self.request.getHeader('Accept', 'application/json')
         session_id = self._get_session_id()
 
