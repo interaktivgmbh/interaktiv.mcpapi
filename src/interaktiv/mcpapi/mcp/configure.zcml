@@ -34,4 +34,20 @@
         permission="zope2.View"
     />
 
+    <!-- OAuth 2.0 Token Endpoint (alternative path) -->
+    <browser:page
+        name="oauth/token"
+        for="*"
+        class="interaktiv.mcpapi.mcp.oauth.OAuthTokenEndpoint"
+        permission="zope2.View"
+    />
+
+    <!-- OAuth 2.0 Token Endpoint (another alternative) -->
+    <browser:page
+        name="token"
+        for="*"
+        class="interaktiv.mcpapi.mcp.oauth.OAuthTokenEndpoint"
+        permission="zope2.View"
+    />
+
 </configure>
