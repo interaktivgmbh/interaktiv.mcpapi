@@ -172,10 +172,11 @@ class OAuthDiscoveryEndpoint(BrowserView):
         metadata = {
             'issuer': server_url,
             'authorization_endpoint': f'{server_url}/authorize',
-            'token_endpoint': f'{server_url}/@mcp-oauth-token',
+            'token_endpoint': f'{server_url}/token',
             'token_endpoint_auth_methods_supported': [
                 'client_secret_post',
                 'client_secret_basic',
+                'none',  # For public clients with PKCE
             ],
             'grant_types_supported': ['authorization_code'],
             'response_types_supported': ['code'],

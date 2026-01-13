@@ -4,7 +4,7 @@ import secrets
 import time
 from interaktiv.mcpapi import logger
 from interaktiv.mcpapi.interfaces import IMCPTool
-from interaktiv.mcpapi.mcp.oauth import validate_access_token, MCP_OAUTH_CLIENT_ID
+from interaktiv.mcpapi.mcp.oauth import validate_access_token, MCP_OAUTH_CLIENT_ID, MCP_SERVER_URL
 
 from AccessControl import getSecurityManager
 from Products.Five import BrowserView
@@ -198,15 +198,27 @@ class MCPEndpoint(BrowserView):
         self.request.response.setHeader('Content-Type', 'application/json')
         return json.dumps({'error': 'GET streams not supported'})
 
+    def _get_server_url(self):
+        """Get the server URL for OAuth metadata."""
+        if MCP_SERVER_URL:
+            return MCP_SERVER_URL.rstrip('/')
+        return self.request.URL1.rstrip('/')
+
     def _handle_post(self):
         """Handle POST request with JSON-RPC message."""
         # Validate Bearer token if OAuth is configured
         token_result = self._validate_bearer_token()
         if token_result is False:
-            # Token required but invalid/missing
+            # Token required but invalid/missing - return 401 with OAuth metadata URL
+            server_url = self._get_server_url()
+            discovery_url = f'{server_url}/@mcp-oauth-discovery'
+
             self.request.response.setStatus(401)
             self.request.response.setHeader('Content-Type', 'application/json')
-            self.request.response.setHeader('WWW-Authenticate', 'Bearer')
+            self.request.response.setHeader(
+                'WWW-Authenticate',
+                f'Bearer resource_metadata="{discovery_url}"'
+            )
             return json.dumps(self._json_rpc_error(
                 None, -32600, 'Authentication required'
             ))
