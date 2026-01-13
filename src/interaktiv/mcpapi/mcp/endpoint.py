@@ -211,17 +211,18 @@ class MCPEndpoint(BrowserView):
         # Validate Bearer token if OAuth is configured
         token_result = self._validate_bearer_token()
         if token_result is False:
-            # Token required but invalid/missing - return 401 with OAuth metadata URL
+            # Token required but invalid/missing - return 401 with Protected Resource Metadata URL
             server_url = self._get_server_url()
-            discovery_url = f'{server_url}/@mcp-oauth-discovery'
+            # Point to Protected Resource Metadata (RFC 9728), not OAuth discovery directly
+            resource_metadata_url = f'{server_url}/.well-known/oauth-protected-resource'
 
-            logger.info(f"MCP returning 401, discovery_url={discovery_url}")
+            logger.info(f"MCP returning 401, resource_metadata_url={resource_metadata_url}")
 
             self.request.response.setStatus(401)
             self.request.response.setHeader('Content-Type', 'application/json')
             self.request.response.setHeader(
                 'WWW-Authenticate',
-                f'Bearer resource_metadata="{discovery_url}"'
+                f'Bearer resource_metadata="{resource_metadata_url}"'
             )
             return json.dumps(self._json_rpc_error(
                 None, -32600, 'Authentication required'
