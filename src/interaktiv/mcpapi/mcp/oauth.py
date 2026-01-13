@@ -160,6 +160,8 @@ class OAuthDiscoveryEndpoint(BrowserView):
         alsoProvides(self.request, IDisableCSRFProtection)
         _set_cors_headers(self.request)
 
+        logger.info(f"OAuth Discovery request from {self.request.getHeader('Origin', 'unknown')}")
+
         if self.request.method == 'OPTIONS':
             self.request.response.setStatus(204)
             return ''
@@ -168,6 +170,7 @@ class OAuthDiscoveryEndpoint(BrowserView):
         self.request.response.setHeader('Cache-Control', 'public, max-age=3600')
 
         server_url = _get_server_url(self.request)
+        logger.info(f"OAuth Discovery returning metadata for server: {server_url}")
 
         metadata = {
             'issuer': server_url,
@@ -304,6 +307,8 @@ class OAuthTokenEndpoint(BrowserView):
         alsoProvides(self.request, IDisableCSRFProtection)
         _set_cors_headers(self.request)
 
+        logger.info(f"OAuth Token request: method={self.request.method}, origin={self.request.getHeader('Origin', 'unknown')}")
+
         if self.request.method == 'OPTIONS':
             self.request.response.setStatus(204)
             return ''
@@ -330,6 +335,7 @@ class OAuthTokenEndpoint(BrowserView):
         # Parse request
         params = self._parse_request()
         grant_type = params.get('grant_type', '')
+        logger.info(f"OAuth Token request: grant_type={grant_type}, client_id={params.get('client_id', 'none')[:8] if params.get('client_id') else 'none'}...")
 
         if grant_type == 'authorization_code':
             return self._handle_authorization_code(params)
@@ -350,9 +356,13 @@ class OAuthTokenEndpoint(BrowserView):
         client_id = params.get('client_id', '')
         client_secret = params.get('client_secret', '')
 
+        logger.info(f"Token exchange: code={code[:16] if code else 'none'}..., has_verifier={bool(code_verifier)}")
+
         # Validate authorization code
         _cleanup_expired_codes()
         code_data = _authorization_codes.get(code)
+
+        logger.info(f"Authorization codes in memory: {len(_authorization_codes)}, code_found={code_data is not None}")
 
         if not code_data:
             logger.warning("Invalid or expired authorization code")

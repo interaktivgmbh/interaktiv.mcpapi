@@ -206,12 +206,16 @@ class MCPEndpoint(BrowserView):
 
     def _handle_post(self):
         """Handle POST request with JSON-RPC message."""
+        logger.info(f"MCP POST request from {self.request.getHeader('Origin', 'unknown')}")
+
         # Validate Bearer token if OAuth is configured
         token_result = self._validate_bearer_token()
         if token_result is False:
             # Token required but invalid/missing - return 401 with OAuth metadata URL
             server_url = self._get_server_url()
             discovery_url = f'{server_url}/@mcp-oauth-discovery'
+
+            logger.info(f"MCP returning 401, discovery_url={discovery_url}")
 
             self.request.response.setStatus(401)
             self.request.response.setHeader('Content-Type', 'application/json')
@@ -222,6 +226,8 @@ class MCPEndpoint(BrowserView):
             return json.dumps(self._json_rpc_error(
                 None, -32600, 'Authentication required'
             ))
+
+        logger.info(f"MCP request authenticated, token_result={type(token_result)}")
 
         accept_header = self.request.getHeader('Accept', 'application/json')
         session_id = self._get_session_id()
