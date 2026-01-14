@@ -72,9 +72,16 @@ class MCPEndpoint(BrowserView):
         lines = []
         if event_id:
             lines.append(f'id: {event_id}')
+        lines.append('event: message')
         lines.append(f'data: {json.dumps(data)}')
         lines.append('')  # Empty line to end event
         return '\n'.join(lines) + '\n'
+
+    def _set_sse_headers(self):
+        """Set headers for SSE response."""
+        self.request.response.setHeader('Content-Type', 'text/event-stream')
+        self.request.response.setHeader('Cache-Control', 'no-cache, no-transform')
+        self.request.response.setHeader('X-Accel-Buffering', 'no')
 
     def __call__(self):
         alsoProvides(self.request, IDisableCSRFProtection)
@@ -181,8 +188,7 @@ class MCPEndpoint(BrowserView):
             response_json = json.dumps(result)
 
         if 'text/event-stream' in accept_header:
-            self.request.response.setHeader('Content-Type', 'text/event-stream')
-            self.request.response.setHeader('Cache-Control', 'no-cache')
+            self._set_sse_headers()
             return self._format_sse_event(result, event_id=str(request_id))
         else:
             self.request.response.setHeader('Content-Type', 'application/json')
@@ -191,24 +197,32 @@ class MCPEndpoint(BrowserView):
     def _handle_initialize(self, request_id):
         """Handle initialize request - creates new session."""
         session_id = self._create_session()
+        accept_header = self.request.getHeader('Accept', 'application/json')
 
-        self.request.response.setHeader('Content-Type', 'application/json')
         self.request.response.setHeader('Mcp-Session-Id', session_id)
 
-        return json.dumps({
+        result = {
             'jsonrpc': '2.0',
             'id': request_id,
             'result': {
                 'protocolVersion': MCP_PROTOCOL_VERSION,
                 'serverInfo': {
                     'name': 'plone-mcp',
-                    'version': '0.2.0',
+                    'version': '0.3.0',
                 },
                 'capabilities': {
                     'tools': {},
                 },
             },
-        })
+        }
+
+        # Return as SSE or JSON based on Accept header
+        if 'text/event-stream' in accept_header:
+            self._set_sse_headers()
+            return self._format_sse_event(result, event_id=str(request_id))
+        else:
+            self.request.response.setHeader('Content-Type', 'application/json')
+            return json.dumps(result)
 
     def _handle_ping(self, request_id):
         """Handle ping request."""
