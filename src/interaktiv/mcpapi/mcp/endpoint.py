@@ -101,7 +101,8 @@ class MCPEndpoint(BrowserView):
     def __call__(self):
         alsoProvides(self.request, IDisableCSRFProtection)
 
-        method = self.request.method
+        # Get HTTP method - Zope uses REQUEST_METHOD in environ
+        method = self.request.environ.get('REQUEST_METHOD', 'POST')
 
         if method == 'POST':
             return self._handle_post()
