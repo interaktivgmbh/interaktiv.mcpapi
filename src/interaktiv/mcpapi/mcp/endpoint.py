@@ -72,7 +72,7 @@ class MCPEndpoint(BrowserView):
         """Set headers for SSE response matching FastMCP."""
         self.request.response.setHeader('Content-Type', 'text/event-stream; charset=utf-8')
         self.request.response.setHeader('Cache-Control', 'no-cache, no-transform')
-        self.request.response.setHeader('Connection', 'keep-alive')
+        # Note: Connection header is hop-by-hop and cannot be set in WSGI (PEP 3333)
         self.request.response.setHeader('X-Accel-Buffering', 'no')
 
     def _set_json_headers(self):
