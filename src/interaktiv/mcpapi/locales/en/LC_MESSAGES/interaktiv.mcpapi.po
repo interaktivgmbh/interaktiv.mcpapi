@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2025-10-02 13:00+0000\n"
+"POT-Creation-Date: 2026-04-10 13:46+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
 "Last-Translator: Jan Mevissen <mevissen@interaktiv.de>\n"
 "Language-Team: Interaktiv Developers <entwickler@interaktiv.de>\n"
@@ -13,3 +13,64 @@ msgstr ""
 "Language-Name: English\n"
 "Preferred-Encodings: utf-8 latin1\n"
 "Domain: interaktiv.mcpapi\n"
+
+#: ../configure.zcml:20
+msgid "Installs the interaktiv.mcpapi add-on."
+msgstr ""
+
+#: ../controlpanels/templates/settings.pt:15
+msgid "No tools registered."
+msgstr ""
+
+#: ../configure.zcml:29
+msgid "Uninstalls the interaktiv.mcpapi add-on."
+msgstr ""
+
+#: ../configure.zcml:20
+msgid "interaktiv.mcpapi"
+msgstr ""
+
+#: ../configure.zcml:29
+msgid "interaktiv.mcpapi (uninstall)"
+msgstr ""
+
+#. Default: "Configuration for the MCP API endpoint."
+#: ../controlpanels/templates/settings.pt:10
+msgid "trans_description_controlpanel_mcp_api_settings"
+msgstr ""
+
+#. Default: "Available Tools"
+#: ../controlpanels/templates/settings.pt:12
+msgid "trans_label_controlpanel_mcp_api_available_tools"
+msgstr ""
+
+#. Default: "Description"
+#: ../controlpanels/templates/settings.pt:21
+msgid "trans_label_controlpanel_mcp_api_description"
+msgstr ""
+
+#. Default: "Name"
+#: ../controlpanels/templates/settings.pt:20
+msgid "trans_label_controlpanel_mcp_api_name"
+msgstr ""
+
+#. Default: "Package"
+#: ../controlpanels/templates/settings.pt:24
+msgid "trans_label_controlpanel_mcp_api_package"
+msgstr ""
+
+#. Default: "Parameters"
+#: ../controlpanels/templates/settings.pt:23
+msgid "trans_label_controlpanel_mcp_api_parameters"
+msgstr ""
+
+#. Default: "Permission"
+#: ../controlpanels/templates/settings.pt:22
+msgid "trans_label_controlpanel_mcp_api_permission"
+msgstr ""
+
+#. Default: "MCP API Settings"
+#: ../controlpanels/templates/settings.pt:9
+#: ../profiles/default/controlpanel.xml
+msgid "trans_label_controlpanel_mcp_api_settings"
+msgstr "MCP API Settings"

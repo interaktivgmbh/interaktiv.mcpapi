@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<object name="portal_controlpanel"
+        xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+        i18n:domain="interaktiv.mcpapi"
+        purge="False">
+
+    <!-- MCP API Settings -->
+    <configlet
+        title="trans_label_controlpanel_mcp_api_settings"
+        action_id="mcp-api-settings"
+        appId="interaktiv.mcpapi"
+        category="Products"
+        condition_expr=""
+        icon_expr="string:robot"
+        url_expr="string:${portal_url}/@@mcp-api-settings"
+        visible="True"
+        i18n:attributes="title">
+        <permission>Manage portal</permission>
+    </configlet>
+
+</object>

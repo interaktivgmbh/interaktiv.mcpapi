@@ -1,0 +1,63 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      metal:use-macro="context/prefs_main_template/macros/master"
+      i18n:domain="interaktiv.mcpapi">
+
+<metal:block fill-slot="prefs_configlet_main">
+    <h2 i18n:translate="trans_label_controlpanel_mcp_api_settings">MCP API Settings</h2>
+    <p i18n:translate="trans_description_controlpanel_mcp_api_settings">Configuration for the MCP API endpoint.</p>
+
+    <h3 i18n:translate="trans_label_controlpanel_mcp_api_available_tools">Available Tools</h3>
+
+    <tal:tools define="tools view/get_tools">
+        <p tal:condition="not:tools" i18n:translate="">No tools registered.</p>
+
+        <table class="table" tal:condition="tools">
+            <thead>
+                <tr>
+                    <th i18n:translate="trans_label_controlpanel_mcp_api_name">Name</th>
+                    <th i18n:translate="trans_label_controlpanel_mcp_api_description">Description</th>
+                    <th i18n:translate="trans_label_controlpanel_mcp_api_permission">Permission</th>
+                    <th i18n:translate="trans_label_controlpanel_mcp_api_parameters">Parameters</th>
+                    <th i18n:translate="trans_label_controlpanel_mcp_api_package">Package</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr tal:repeat="tool tools">
+                    <td>
+                        <strong tal:content="tool/name">tool name</strong>
+                    </td>
+                    <td tal:content="tool/description">tool description</td>
+                    <td>
+                        <code tal:content="tool/permission">permission</code>
+                    </td>
+                    <td>
+                        <tal:params define="properties python:tool['schema'].get('properties', {});
+                                            required python:tool['schema'].get('required', [])">
+                            <span tal:condition="not:properties">-</span>
+                            <ul tal:condition="properties" style="margin:0; padding-left:1.2em;">
+                                <li tal:repeat="param properties">
+                                    <code tal:content="param">param</code>
+                                    <span tal:condition="python:param in required"
+                                          style="color:red;">*</span>
+                                    <span tal:define="info python:properties[param]"
+                                          tal:condition="python:info.get('description')"
+                                          tal:content="python:' - ' + info['description']">
+                                    </span>
+                                </li>
+                            </ul>
+                        </tal:params>
+                    </td>
+                    <td>
+                        <code tal:content="tool/package">package</code>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </tal:tools>
+
+</metal:block>
+
+</html>

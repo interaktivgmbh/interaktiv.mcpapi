@@ -1,0 +1,16 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="interaktiv.mcpapi">
+
+    <include package="Products.CMFCore" file="permissions.zcml" />
+
+    <!-- Controlpanel MCP API Settings -->
+    <browser:page
+        name="mcp-api-settings"
+        for="plone.base.interfaces.IPloneSiteRoot"
+        class="interaktiv.mcpapi.controlpanels.settings.MCPAPISettingsView"
+        permission="cmf.ManagePortal"
+        layer="interaktiv.mcpapi.interfaces.IInteraktivMcpapiLayer"
+    />
+</configure>
