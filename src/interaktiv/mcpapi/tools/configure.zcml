@@ -9,4 +9,18 @@
         name="search"
     />
 
+    <adapter
+        factory="interaktiv.mcpapi.tools.course_search.CourseSearchTool"
+        provides="interaktiv.mcpapi.interfaces.IMCPTool"
+        for="* zope.publisher.interfaces.browser.IDefaultBrowserLayer"
+        name="course_search"
+    />
+
+    <adapter
+        factory="interaktiv.mcpapi.tools.course_details.CourseDetailsTool"
+        provides="interaktiv.mcpapi.interfaces.IMCPTool"
+        for="* zope.publisher.interfaces.browser.IDefaultBrowserLayer"
+        name="course_details"
+    />
+
   </configure>
