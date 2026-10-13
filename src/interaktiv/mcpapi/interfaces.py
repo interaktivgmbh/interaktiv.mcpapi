@@ -1,7 +1,8 @@
 from zope.interface import Interface, Attribute
+from zope.publisher.interfaces.browser import IDefaultBrowserLayer
 
 
-class IInteraktivMcpapiLayer(Interface):
+class IInteraktivMcpapiLayer(IDefaultBrowserLayer):
     """Marker interface for the interaktiv.mcpapi browser layer"""
 
 

@@ -40,6 +40,7 @@ bin/buildout
 ```
 
 Install the addon via the Plone control panel or portal_setup.
+The endpoint `@mcp` and its tools only answer after the installation, they use the browser layer of the add-on.
 
 ## MCP Client Compatibility
 
@@ -141,7 +142,7 @@ class MyCustomTool(MCPToolBase):
         },
         'required': ['param1']
     }
-    permission = 'View'  # Zope permission title (not ID)
+    permission = 'View'  # Zope permission title, the id from ZCML ('zope2.View') works too
 
     def execute(self, params):
         # Your tool logic here
@@ -168,7 +169,8 @@ class MyCustomTool(MCPToolBase):
 
 ### Permission Values
 
-Use Zope permission **titles** (not IDs) for the `permission` attribute:
+Use the Zope permission **title** or its **id** from ZCML for the `permission` attribute.
+The endpoint looks up the title of an id. The default is `View`.
 
 | Permission Title | Permission ID | Description |
 |-----------------|---------------|-------------|

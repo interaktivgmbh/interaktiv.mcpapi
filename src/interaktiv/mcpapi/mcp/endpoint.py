@@ -3,10 +3,12 @@ from interaktiv.mcpapi import logger
 from interaktiv.mcpapi.interfaces import IMCPTool
 
 from AccessControl import getSecurityManager
+from AccessControl.security import checkPermission
 from Products.Five import BrowserView
 from plone.protect.interfaces import IDisableCSRFProtection
-from zope.component import getAdapters, queryMultiAdapter
+from zope.component import getAdapters, queryMultiAdapter, queryUtility
 from zope.interface import alsoProvides
+from zope.security.interfaces import IPermission
 from interaktiv.mcpapi.mcp import MAX_RESPONSE_SIZE_BYTES
 
 
@@ -68,11 +70,10 @@ class MCPEndpoint(BrowserView):
 
     def _handle_tools_list(self, request_id):
         tools = []
-        sm = getSecurityManager()
 
         available_tools = getAdapters((self.context, self.request), IMCPTool)
         for name, tool in available_tools:
-            if not sm.checkPermission(tool.permission, self.context):
+            if not self._has_permission(tool):
                 continue
 
             tools.append({
@@ -116,8 +117,7 @@ class MCPEndpoint(BrowserView):
             )
 
         # Check permission
-        sm = getSecurityManager()
-        if not sm.checkPermission(tool.permission, self.context):
+        if not self._has_permission(tool):
             return self._json_rpc_error(
                 request_id,
                 code=-32600,
@@ -142,6 +142,12 @@ class MCPEndpoint(BrowserView):
                 code=-32603,
                 message='Internal error'
             )
+
+    def _has_permission(self, tool):
+        # a tool names its permission by title ('View') or by its id from ZCML ('zope2.View')
+        if queryUtility(IPermission, name=tool.permission) is not None:
+            return checkPermission(tool.permission, self.context)
+        return getSecurityManager().checkPermission(tool.permission, self.context)
 
     def _json_rpc_error(self, request_id, code, message):
         # reference for JSON-RPC error codes: https://www.jsonrpc.org/specification#error_object

@@ -7,6 +7,7 @@
           for="*"
           class="interaktiv.mcpapi.mcp.endpoint.MCPEndpoint"
           permission="zope2.View"
+          layer="interaktiv.mcpapi.interfaces.IInteraktivMcpapiLayer"
       />
 
   </configure>
