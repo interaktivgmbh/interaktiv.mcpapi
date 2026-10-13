@@ -9,7 +9,7 @@ class MCPToolBase:
     name = ""
     description = ""
     schema = {"type": "object", "properties": {}}
-    permission = "zope2.View"
+    permission = "View"
 
     def __init__(self, context, request):
         self.context = context

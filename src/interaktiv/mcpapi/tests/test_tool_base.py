@@ -28,7 +28,7 @@ class TestToolBase(unittest.TestCase):
         self.assertEqual(self.tool.name, '')
         self.assertEqual(self.tool.description, '')
         self.assertEqual(self.tool.schema, {'type': 'object', 'properties': {}})
-        self.assertEqual(self.tool.permission, 'zope2.View')
+        self.assertEqual(self.tool.permission, 'View')
 
     def test_context_and_request(self):
         self.assertEqual(self.tool.context, self.portal)

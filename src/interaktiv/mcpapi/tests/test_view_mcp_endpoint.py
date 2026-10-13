@@ -86,6 +86,27 @@ class TestMCPEndpointView(unittest.TestCase):
         self.assertEqual(len(tools), 1)
         self.assertEqual(tools[0]['name'], 'search')
 
+    def test__handle_tools_list__permission_id(self):
+        # do it
+        # the site is private in the test fixture, Reader has the permission View
+        with patch.object(SearchTool, 'permission', 'zope2.View'):
+            with api.env.adopt_roles(['Reader']):
+                result = self.view._handle_tools_list(request_id='some_request_id')
+
+        # postcondition
+        tools = result['result']['tools']
+        self.assertEqual(len(tools), 1)
+        self.assertEqual(tools[0]['name'], 'search')
+
+    def test__handle_tools_list__permission_title(self):
+        # do it
+        with patch.object(SearchTool, 'permission', 'Manage portal'):
+            with api.env.adopt_roles(['Reader']):
+                result = self.view._handle_tools_list(request_id='some_request_id')
+
+        # postcondition
+        self.assertEqual(result['result']['tools'], [])
+
     def test__handle_tools_call__no_tool_name(self):
         # setup
         data = {}
