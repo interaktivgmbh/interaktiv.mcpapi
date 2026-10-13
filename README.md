@@ -40,6 +40,7 @@ bin/buildout
 ```
 
 Install the addon via the Plone control panel or portal_setup.
+The endpoint `@mcp` and its tools only answer after the installation, they use the browser layer of the add-on.
 
 ## MCP Client Compatibility
 

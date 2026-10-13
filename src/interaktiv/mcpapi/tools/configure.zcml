@@ -5,7 +5,7 @@
     <adapter
         factory="interaktiv.mcpapi.tools.search.SearchTool"
         provides="interaktiv.mcpapi.interfaces.IMCPTool"
-        for="* zope.publisher.interfaces.browser.IDefaultBrowserLayer"
+        for="* interaktiv.mcpapi.interfaces.IInteraktivMcpapiLayer"
         name="search"
     />
 

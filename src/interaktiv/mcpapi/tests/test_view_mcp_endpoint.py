@@ -1,4 +1,5 @@
 import json
+import transaction
 import unittest
 from interaktiv.mcpapi.interfaces import IInteraktivMcpapiLayer
 from interaktiv.mcpapi.mcp.endpoint import MCPEndpoint
@@ -6,8 +7,13 @@ from interaktiv.mcpapi.testing import INTERAKTIV_MCPAPI_FUNCTIONAL_TESTING
 
 from plone import api
 from plone.app.testing import TEST_USER_ID, setRoles
+from plone.base.utils import get_installer
+from plone.testing.zope import Browser
 from unittest.mock import patch
 from interaktiv.mcpapi.tools.search import SearchTool
+from zope.component import queryMultiAdapter
+from zope.interface import alsoProvides
+from zope.publisher.browser import TestRequest
 
 
 class TestMCPEndpointView(unittest.TestCase):
@@ -18,12 +24,21 @@ class TestMCPEndpointView(unittest.TestCase):
         self.portal = self.layer['portal']
         self.request = self.layer['request']
         setRoles(self.portal, TEST_USER_ID, ['Manager', 'Site Administrator'])
+        # the browser layer is set during traversal, which these tests skip
+        alsoProvides(self.request, IInteraktivMcpapiLayer)
 
         self.view = api.content.get_view(
             name='@mcp',
             context=self.portal,
             request=self.request,
         )
+
+    def test_view_needs_browserlayer(self):
+        # do it
+        view = queryMultiAdapter((self.portal, TestRequest()), name='@mcp')
+
+        # postcondition
+        self.assertIsNone(view)
 
     def test__handle_initialize(self):
         # do it
@@ -360,3 +375,43 @@ class TestMCPEndpointView(unittest.TestCase):
             'url': f'{self.portal.absolute_url()}/document_a'
         }
         self.assertDictEqual(content_data[0], expected_content_data)
+
+
+class TestMCPEndpointOverHttp(unittest.TestCase):
+    layer = INTERAKTIV_MCPAPI_FUNCTIONAL_TESTING
+
+    def setUp(self):
+        self.app = self.layer['app']
+        self.portal = self.layer['portal']
+        self.request = self.layer['request']
+
+        self.browser = Browser(self.app)
+        self.browser.raiseHttpErrors = False
+
+    def _post_initialize(self):
+        body = json.dumps({
+            'jsonrpc': '2.0',
+            'method': 'initialize',
+            'id': 'some_request_id'
+        })
+        self.browser.post(f'{self.portal.absolute_url()}/@mcp', body, 'application/json')
+
+    def test_installed(self):
+        # do it
+        self._post_initialize()
+
+        # postcondition
+        self.assertEqual(self.browser.headers['status'], '200 OK')
+        data = json.loads(self.browser.contents)
+        self.assertEqual(data['result']['serverInfo']['name'], 'plone-mcp')
+
+    def test_uninstalled(self):
+        # setup
+        get_installer(self.portal, self.request).uninstall_product('interaktiv.mcpapi')
+        transaction.commit()
+
+        # do it
+        self._post_initialize()
+
+        # postcondition
+        self.assertEqual(self.browser.headers['status'], '404 Not Found')
